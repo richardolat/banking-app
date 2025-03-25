@@ -1,0 +1,56 @@
+.dashboard {
+    background: linear-gradient(to right, #1a1a1a, #d4af37);
+    min-height: 100vh;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  header, footer {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .dashboard-content {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  form {
+    margin: 20px 0;
+  }
+  
+  label {
+    margin-right: 10px;
+    display: inline-block;
+    width: 120px;
+    text-align: left;
+  }
+  
+  input {
+    padding: 5px;
+    margin: 5px 10px;
+    width: 200px;
+  }
+  
+  button {
+    padding: 5px 10px;
+    background: #d4af37;
+    border: none;
+    color: #1a1a1a;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background: #b8972e;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    margin: 10px 0;
+  }
