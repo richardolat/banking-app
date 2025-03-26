@@ -17,7 +17,7 @@ on:
         default: 'false'
         type: boolean
 
-# Added permissions block at workflow level
+# Added permissions block at workflow l
 permissions:
   contents: write
   actions: write
