@@ -95,7 +95,7 @@ jobs:
       - name: Trigger CD Workflow
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
           event-type: ci-success
           repository: richardolat/banking-app
           client-payload: '{"status": "${{ job.status }}", "run_id": "${{ github.run_id }}"}'
