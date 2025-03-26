@@ -1,9 +1,7 @@
 name: CD Pipeline
 
 on:
-  repository_dispatch:
-    types: [ci-success]
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger
     inputs:
       environment:
         description: 'Target environment'
@@ -23,52 +21,18 @@ on:
 permissions:
   contents: write
   actions: write
-  packages: write  # Needed for Docker pushes
   id-token: write  # Needed for AWS/GCP auth if you add it later
 
 jobs:
-  build_docker_image_and_push:
+  deploy_to_ec2:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
       - name: Verify manual inputs
         if: github.event_name == 'workflow_dispatch'
         run: |
           echo "Environment: ${{ github.event.inputs.environment }}"
           echo "Skip tests: ${{ github.event.inputs.skip-tests }}"
           
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          
-      - name: Build and push Backend Docker image
-        working-directory: ./backend
-        run: |
-          mvn clean package
-          docker build -t richardolat/banking-app-backend:${{ github.run_id }} .
-          docker build -t richardolat/banking-app-backend:latest .
-          docker push richardolat/banking-app-backend:${{ github.run_id }}
-          docker push richardolat/banking-app-backend:latest
-          
-      - name: Build and push Frontend Docker image
-        working-directory: ./frontend
-        run: |
-          docker build -t richardolat/banking-app-frontend:${{ github.run_id }} .
-          docker build -t richardolat/banking-app-frontend:latest .
-          docker push richardolat/banking-app-frontend:${{ github.run_id }}
-          docker push richardolat/banking-app-frontend:latest
-
-  deploy_to_ec2:
-    runs-on: ubuntu-latest
-    needs: build_docker_image_and_push
-    steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -85,17 +49,3 @@ jobs:
             docker rm frontend || true
             docker run -d -p 8080:8080 --name backend richardolat/banking-app-backend:${{ github.run_id }}
             docker run -d -p 3000:3000 --name frontend richardolat/banking-app-frontend:${{ github.run_id }}
-
-  # Added the trigger_cd job as requested
-  trigger_cd:
-    runs-on: ubuntu-latest
-    needs: [build_docker_image_and_push, deploy_to_ec2]
-    if: always()  # Runs regardless of previous job status
-    steps:
-      - name: Trigger CD Workflow
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          event-type: ci-success
-          repository: richardolat/banking-app
-          client-payload: '{"status": "${{ job.status }}", "run_id": "${{ github.run_id }}"}'
